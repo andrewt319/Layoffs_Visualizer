@@ -1,5 +1,5 @@
 function finalproject(){
-    d3.csv('layoffs_per_industry.csv').then(function(data) {
+    d3.csv('data/layoffs_per_industry.csv').then(function(data) {
         data.forEach(function(d) {
             d.total_laid_off = parseInt(d.total_laid_off);
           });
@@ -7,11 +7,11 @@ function finalproject(){
         tableVis(data);
     })
 
-    d3.csv('top_5.csv').then(function(data) {
+    d3.csv('data/top_5.csv').then(function(data) {
         networkVis(data);
     })
 
-    d3.csv('us_layoffs.csv').then(function(data) {
+    d3.csv('data/us_layoffs.csv').then(function(data) {
         data.forEach(function(d) {
             d.total_laid_off = parseInt(d.total_laid_off);
           });
@@ -185,7 +185,7 @@ let networkVis = function(data) {
   }
 
   // Load the data
-  d3.json("network.json").then(data => {
+  d3.json("data/network.json").then(data => {
   const { nodes, links } = data;
 
   // Create a scale for link thickness
@@ -363,7 +363,7 @@ data.forEach(function (item) {
     layoff_data[state] = total_laid_off
 });
     // Load US states data
-  d3.json("us-states.json")
+  d3.json("data/us-states.json")
   .then(function(json) {
     json.features.forEach(function(feature) {
       var state = stateSym[feature.properties.name];
