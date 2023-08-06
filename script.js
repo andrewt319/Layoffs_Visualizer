@@ -210,6 +210,16 @@ let networkVis = function(data) {
       .attr("fill", "none")
       .attr("d", linkArc); 
 
+    const linkOpposite = container.append("g")
+      .selectAll("path")
+      .data(links)
+      .enter()
+      .append("path")
+      .attr("stroke", linkColor)
+      .attr("stroke-width", d => linkThicknessScale(d.value))
+      .attr("fill", "none")
+      .attr("d", linkArcOpposite);
+
     // Create the nodes with labels
     const node = container.append("g")
       .selectAll("circle")
@@ -238,6 +248,7 @@ let networkVis = function(data) {
     // Update node and link positions during simulation
     simulation.on("tick", () => {
       link.attr("d", linkArc); // Update the curved paths on tick
+      linkOpposite.attr("d", linkArcOpposite);
       node.attr("cx", d => d.x).attr("cy", d => d.y);
       label.attr("x", d => d.x).attr("y", d => d.y);
     });
@@ -284,8 +295,15 @@ let networkVis = function(data) {
   let linkArc = function(d) {
     const dx = d.target.x - d.source.x;
     const dy = d.target.y - d.source.y;
-    const dr = Math.sqrt(dx * dx + dy * dy) * 0.7; // Distance between the source and target nodes
+    const dr = Math.sqrt(dx * dx + dy * dy);
     return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+  }
+
+  let linkArcOpposite = function(d) {
+    const dx = d.source.x - d.target.x; 
+    const dy = d.source.y - d.target.y; 
+    const dr = Math.sqrt(dx * dx + dy * dy); 
+    return `M${d.target.x},${d.target.y}A${dr},${dr} 0 0,1 ${d.source.x},${d.source.y}`;
   }
 }
 
