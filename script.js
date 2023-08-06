@@ -129,12 +129,12 @@ let tableVis = function(data) {
 }
 
 let networkVis = function(data) {
-    const linkColor = "gray";
+  const linkColor = "gray";
   const companyColor = "lightseagreen";
   const industryColor = "lightblue"
 
   const width = 900;
-  const height = 1000
+  const height = 1000;
 
   const industries = ['Aerospace',
     'Construction',
@@ -164,13 +164,13 @@ let networkVis = function(data) {
     'Security',
     'Support',
     'Transportation',
-    'Travel']
+    'Travel'];
 
-    // Set up SVG container and zoom behavior
+  // Set up SVG container and zoom behavior
   const svg = d3.select("#network_plot")
-  .append("svg")
-  .attr("width", width)
-  .attr("height", height);
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
   const zoom = d3.zoom()
     .scaleExtent([0.5, 3])
@@ -181,114 +181,114 @@ let networkVis = function(data) {
   svg.call(zoom);
 
   function zoomed(event) {
-  container.attr("transform", event.transform);
+    container.attr("transform", event.transform);
   }
 
   // Load the data
   d3.json("data/network.json").then(data => {
-  const { nodes, links } = data;
+    const { nodes, links } = data;
 
-  // Create a scale for link thickness
-  const linkThicknessScale = d3.scaleLinear()
-    .domain(d3.extent(links, d => d.value))
-    .range([1, 10]);
+    // Create a scale for link thickness
+    const linkThicknessScale = d3.scaleLinear()
+      .domain(d3.extent(links, d => d.value))
+      .range([1, 10]);
 
-  // Create the force simulation
-  const simulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links).id(d => d.id))
-    .force("charge", d3.forceManyBody().strength(-7))
-    .force("center", d3.forceCenter(svg.attr("width") / 2, svg.attr("height") / 2));
+    // Create the force simulation
+    const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).id(d => d.id))
+      .force("charge", d3.forceManyBody().strength(-7))
+      .force("center", d3.forceCenter(svg.attr("width") / 2, svg.attr("height") / 2));
 
-  // Create the links
-  const link = container.append("g")
-    .selectAll("line")
-    .data(links)
-    .enter()
-    .append("line")
-    .attr("stroke", linkColor)
-    .attr("stroke-width", d => linkThicknessScale(d.value));
+    // Create the links as curved paths
+    const link = container.append("g")
+      .selectAll("path")
+      .data(links)
+      .enter()
+      .append("path")
+      .attr("stroke", linkColor)
+      .attr("stroke-width", d => linkThicknessScale(d.value))
+      .attr("fill", "none")
+      .attr("d", linkArc); 
 
-  // Create the nodes with labels
-  const node = container.append("g")
-    .selectAll("circle")
-    .data(nodes)
-    .enter()
-    .append("circle")
-    .attr("r", d => industries.includes(d.name) ? 15 : 8)
-    .style("fill", d => industries.includes(d.name) ? industryColor : companyColor);
+    // Create the nodes with labels
+    const node = container.append("g")
+      .selectAll("circle")
+      .data(nodes)
+      .enter()
+      .append("circle")
+      .attr("r", d => industries.includes(d.name) ? 15 : 8)
+      .style("fill", d => industries.includes(d.name) ? industryColor : companyColor);
 
-  node.append("title")
-    .text(d => d.name);
+    node.append("title")
+      .text(d => d.name);
 
-  const label = container.append("g")
-    .selectAll("text")
-    .data(nodes)
-    .enter()
-    .append("text")
-    .text(d => d.name)
-    .style("font-size", d => industries.includes(d.name) ? "10px" : "6px")
-    .style("font-weight", d => industries.includes(d.name) ? "bold" : "normal")
-    .attr("dx", -5)
-    .attr("dy", 2);
+    const label = container.append("g")
+      .selectAll("text")
+      .data(nodes)
+      .enter()
+      .append("text")
+      .text(d => d.name)
+      .style("font-size", d => industries.includes(d.name) ? "10px" : "6px")
+      .style("font-weight", d => industries.includes(d.name) ? "bold" : "normal")
+      .attr("dx", -5)
+      .attr("dy", 2);
 
     simulation.force("collide", d3.forceCollide().radius(20)); // Adjust the radius as needed
 
-
-  // Update node and link positions during simulation
-  simulation.on("tick", () => {
-    link
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y);
-
-    node
-      .attr("cx", d => d.x)
-      .attr("cy", d => d.y);
-
-    label
-      .attr("x", d => d.x)
-      .attr("y", d => d.y);
+    // Update node and link positions during simulation
+    simulation.on("tick", () => {
+      link.attr("d", linkArc); // Update the curved paths on tick
+      node.attr("cx", d => d.x).attr("cy", d => d.y);
+      label.attr("x", d => d.x).attr("y", d => d.y);
+    });
   });
-});
 
-svg.append("text")
-.attr("x", width / 2)
-.attr("y", 20)
-.text("Top 5 Companies with the Most Layoffs Per Industry")
-.style("text-anchor", "middle")
-.style("font-size", "25px");
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", 20)
+    .text("Top 5 Companies with the Most Layoffs Per Industry")
+    .style("text-anchor", "middle")
+    .style("font-size", "25px");
 
-const legend = svg.append("g")
-  .attr("class", "legend")
-  .attr("transform", `translate(${width - 120}, ${height - 200})`);
+  const legend = svg.append("g")
+    .attr("class", "legend")
+    .attr("transform", `translate(${width - 120}, ${height - 200})`);
 
-// Industry legend item
-legend.append("circle")
-  .attr("cx", 10)
-  .attr("cy", 10)
-  .attr("r", 6)
-  .style("fill", industryColor);
+  // Industry legend item
+  legend.append("circle")
+    .attr("cx", 10)
+    .attr("cy", 10)
+    .attr("r", 6)
+    .style("fill", industryColor);
 
-legend.append("text")
-  .attr("x", 20)
-  .attr("y", 10)
-  .text("Industry")
-  .attr("alignment-baseline", "middle");
+  legend.append("text")
+    .attr("x", 20)
+    .attr("y", 10)
+    .text("Industry")
+    .attr("alignment-baseline", "middle");
 
-// Company legend item
-legend.append("circle")
-  .attr("cx", 10)
-  .attr("cy", 30)
-  .attr("r", 6)
-  .style("fill", companyColor);
+  // Company legend item
+  legend.append("circle")
+    .attr("cx", 10)
+    .attr("cy", 30)
+    .attr("r", 6)
+    .style("fill", companyColor);
 
-legend.append("text")
-  .attr("x", 20)
-  .attr("y", 30)
-  .text("Company")
-  .attr("alignment-baseline", "middle");
+  legend.append("text")
+    .attr("x", 20)
+    .attr("y", 30)
+    .text("Company")
+    .attr("alignment-baseline", "middle");
+
+  // Function to generate curved links
+  let linkArc = function(d) {
+    const dx = d.target.x - d.source.x;
+    const dy = d.target.y - d.source.y;
+    const dr = Math.sqrt(dx * dx + dy * dy) * 0.7; // Distance between the source and target nodes
+    return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+  }
 }
+
 
 let geometryVis = function(data) {
     let stateSym = {
